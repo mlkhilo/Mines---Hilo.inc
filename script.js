@@ -1,7 +1,7 @@
 // Configurações
 const somAtivo = localStorage.getItem("somAtivo") !== "false";
 const config = {
-  multiplicadorBase: 1.0,
+  multiplicadorBase: 0,
   incrementoPorAcerto: 0.3,
   maxHistorico: 10
 };
@@ -92,6 +92,15 @@ function criarGrade() {
   }
 }
 
+
+// Adicione esta função para vibração
+function vibrar() {
+  if ("vibrate" in navigator) {
+    navigator.vibrate(200);
+  }
+}
+
+// Modifique a função iniciarJogo para configurar o incremento baseado no número de bombas
 function iniciarJogo() {
   const aposta = parseFloat(elementos.apostaInput.value);
   if (aposta > estado.saldo || aposta <= 0) {
@@ -99,8 +108,19 @@ function iniciarJogo() {
     return;
   }
 
+  const numBombas = parseInt(elementos.bombasSelect.value);
+  
+  // Configura o incremento baseado no número de bombas
+  if (numBombas === 3) {
+    config.incrementoPorAcerto = 0.30;
+  } else if (numBombas === 5) {
+    config.incrementoPorAcerto = 0.50;
+  } else if (numBombas === 10) {
+    config.incrementoPorAcerto = 1.00;
+  }
+  
   estado.saldo -= aposta;
-  estado.bombas = gerarBombas(parseInt(elementos.bombasSelect.value));
+  estado.bombas = gerarBombas(numBombas);
   estado.clicadas = [];
   estado.multiplicador = config.multiplicadorBase;
   estado.lucro = 0;
@@ -120,33 +140,54 @@ function clicarCarta(index, elemento) {
   const imagem = elemento.querySelector('.carta-imagem');
   
   if (estado.bombas.includes(index)) {
-    // Verifica se tem vida extra
     if (progresso.powerUps.vidasExtras > 0) {
       progresso.powerUps.vidasExtras--;
       localStorage.setItem('progresso', JSON.stringify(progresso));
       
-      // Efeito visual de vida usada
       imagem.src = "bomba_padrao.png";
       imagem.style.display = "block";
+      elemento.classList.add("erro");
+      vibrar();
+      
       if (somAtivo) sons.vida.play();
       mostrarResultado("Vida extra usada!", "aviso");
       
-      // Marca como clicada mas não termina o jogo
       estado.clicadas.push(index);
       atualizarUI();
     } else {
       // Efeito de explosão
+      const explosaoEl = document.createElement('div');
+      explosaoEl.className = 'explosao';
+      elemento.appendChild(explosaoEl);
+      
       elemento.classList.add("erro");
       imagem.src = "bomba_padrao.png";
       imagem.style.display = "block";
+      vibrar();
+      
+      setTimeout(() => {
+        explosaoEl.remove();
+      }, 500);
+      
       if (somAtivo) sons.explosao.play();
-      adicionarAoHistorico(false);
-      fimDeJogo(false);
+      
+      // Adia o Game Over em 2 segundos
+      setTimeout(() => {
+        adicionarAoHistorico(false);
+        fimDeJogo(false);
+      }, 1200);
     }
   } else {
+    // Restante da função permanece igual
     elemento.classList.add("acerto");
     imagem.src = "moeda_padrao.png";
     imagem.style.display = "block";
+    imagem.classList.add("moeda-girando");
+    
+    setTimeout(() => {
+      imagem.classList.remove("moeda-girando");
+    }, 500);
+    
     if (somAtivo) sons.acerto.play();
     estado.clicadas.push(index);
     
@@ -158,6 +199,7 @@ function clicarCarta(index, elemento) {
     atualizarUI();
   }
 }
+
 
 function retirar() {
   if (!estado.emJogo) return;
@@ -247,6 +289,24 @@ function limparHistorico() {
 function aplicarSkin() {
   document.body.className = `skin-${progresso.skinAtiva}`;
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const loadingScreen = document.getElementById('loading-screen');
+    const progressFill = document.querySelector('.progress-fill');
+    
+    // Força a renderização antes de iniciar a animação
+    requestAnimationFrame(() => {
+        progressFill.style.width = '100%';
+    });
+
+    // Esconde após 3 segundos
+    setTimeout(() => {
+        loadingScreen.style.opacity = '0';
+        setTimeout(() => {
+            loadingScreen.style.display = 'none';
+        }, 500); // Tempo para a transição de opacidade
+    }, 3000);
+});
 
 // Event Listeners
 document.addEventListener("DOMContentLoaded", function() {

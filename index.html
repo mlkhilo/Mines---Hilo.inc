@@ -6,8 +6,46 @@
   <title>Menu - Mines Cassino</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="style.css" />
+  <link rel="preload" href="hilo.png" as="image">
+<link rel="preload" href="mines.png" as="image">
 </head>
 <body>
+  
+  <script>
+  // Loading screen animation
+  document.addEventListener('DOMContentLoaded', function() {
+    const loadingScreen = document.getElementById('loading-screen');
+    const progressFill = document.getElementById('progress-fill');
+    
+    // Inicia a animação após um pequeno delay para garantir que o DOM está pronto
+    setTimeout(() => {
+      progressFill.style.width = '100%';
+      
+      // Esconde a tela de loading após 3 segundos
+      setTimeout(() => {
+        loadingScreen.style.opacity = '0';
+        
+        // Remove completamente após a transição
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+        }, 500);
+      }, 3000);
+    }, 50);
+  });
+</script>
+  
+  <div id="loading-screen">
+  <img src="hilo.png" alt="Hilo Inc" class="logo-hilo">
+  <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+    <img src="mines.png" alt="Mines" class="logo-mines">
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
   <!-- Barra de Navegação Superior -->
   <div class="header">
     <span class="logo">💎 MINES</span>
