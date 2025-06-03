@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mines Cassino</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Barra Superior -->
+  <div class="header">
+    <button class="btn-voltar" onclick="window.location.href='index.html'">
+      <i class="fas fa-arrow-left"></i> Menu
+    </button>
+    <span class="logo">💎 MINES</span>
+    <div class="moedas">
+      <i class="fas fa-gem" style="color: #4fc3f7;"></i>
+      <span id="saldo-gemas">0</span>
+      <span class="vidas-restantes">
+        <i class="fas fa-heart"></i> ×<span id="contador-vidas">0</span>
+      </span>
+    </div>
+  </div>
+
+  <div class="container-game">
+    <h1 class="game-title">MINES <span class="diamond">💎</span></h1>
+
+    <!-- Estatísticas -->
+    <div class="stats-container">
+      <div class="stat-box">
+        <span class="stat-label">Saldo:</span>
+        <span class="stat-value" id="saldo">100.00</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">Lucro:</span>
+        <span class="stat-value" id="lucro">0.00</span>
+      </div>
+      <div class="stat-box highlight">
+        <span class="stat-label">Multiplicador:</span>
+        <span class="stat-value" id="multiplicador">1.00x</span>
+      </div>
+    </div>
+
+    <!-- Controles -->
+    <div class="controls-game">
+      <div class="control-group">
+        <label for="bombas"><i class="fas fa-bomb"></i> Bombas:</label>
+        <select id="bombas">
+          <option value="3">3</option>
+          <option value="5">5</option>
+          <option value="10">10</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="aposta"><i class="fas fa-coins"></i> Aposta:</label>
+        <input type="number" id="aposta" min="1" value="10" />
+      </div>
+
+      <div class="buttons-game">
+        <button id="iniciar" class="btn-start">
+          <i class="fas fa-play"></i> Iniciar
+        </button>
+        <button id="retirar" class="btn-cashout" disabled>
+          <i class="fas fa-hand-holding-usd"></i> Retirar
+        </button>
+      </div>
+    </div>
+
+    <!-- Grade do Jogo -->
+    <div id="grid" class="grid-game"></div>
+
+    <!-- Histórico -->
+    <div class="history-header">
+      <h3><i class="fas fa-history"></i> Histórico</h3>
+      <button id="limparHistorico"><i class="fas fa-trash"></i></button>
+    </div>
+    <div id="historico" class="historico"></div>
+
+    <!-- Efeito de Vitória/Derrota -->
+    <div id="resultadoOverlay" class="resultado-overlay">
+      <div class="resultado-conteudo"></div>
+    </div>
+  </div>
+
+  <!-- Sons -->
+  <audio id="somAcerto" src="moeda.mp3"></audio>
+  <audio id="somErro" src="errobomba.mp3"></audio>
+  <audio id="somRetirada" src="assets/sounds/retirada.mp3"></audio>
+  <audio id="somInicio" src="assets/sounds/inicio.mp3"></audio>
+  <audio id="somExplosao" src="errobomba.mp3"></audio>
+  <audio id="somVida" src="assets/sounds/vida.mp3"></audio>
+
+  <script src="script.js"></script>
+</body>
+</html>

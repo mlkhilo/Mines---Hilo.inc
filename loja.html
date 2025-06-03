@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loja - Mines Cassino</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Barra Superior -->
+  <div class="header">
+    <button class="btn-voltar" onclick="transitionToPage('index.html')">
+      <i class="fas fa-arrow-left"></i> Voltar
+    </button>
+    <span class="logo">🛒 LOJA</span>
+    <div class="moedas">
+      <i class="fas fa-gem" style="color: #4fc3f7;"></i>
+      <span id="saldo-gemas">0</span>
+    </div>
+  </div>
+
+  <div class="container-loja">
+    <!-- Seção de Skins -->
+    <section class="secao-loja">
+      <h2><i class="fas fa-chess-board"></i> Skins de Tabuleiro</h2>
+      <div class="itens-loja">
+        
+        <!-- Skin Padrão -->
+        <div class="item-loja" data-id="classico" data-preco="0" data-comprado="true">
+          <div class="skin-preview classico"></div>
+          <h3>Clássico</h3>
+          <div class="preco">Gratuito</div>
+          <button class="btn-usar" data-id="classico">Usando</button>
+        </div>
+        
+        <!-- Skin Neon -->
+        <div class="item-loja" data-id="neon" data-preco="500">
+          <div class="skin-preview neon"></div>
+          <h3>Neon</h3>
+          <div class="preco">500 <i class="fas fa-gem"></i></div>
+          <button class="btn-comprar">Comprar</button>
+        </div>
+        
+        <!-- Skin Espaço -->
+        <div class="item-loja" data-id="espaco" data-preco="750">
+          <div class="skin-preview espaco"></div>
+          <h3>Espaço</h3>
+          <div class="preco">750 <i class="fas fa-gem"></i></div>
+          <button class="btn-comprar">Comprar</button>
+        </div>
+        
+        <!-- Skin Retrô -->
+        <div class="item-loja" data-id="retro" data-preco="1000">
+          <div class="skin-preview retro"></div>
+          <h3>Retrô</h3>
+          <div class="preco">1000 <i class="fas fa-gem"></i></div>
+          <button class="btn-comprar">Comprar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção de Power-ups -->
+    <section class="secao-loja">
+      <h2><i class="fas fa-bolt"></i> Power-ups</h2>
+      <div class="itens-loja">
+        
+        <!-- Mina Dourada -->
+        <div class="item-loja" data-id="mina-dourada" data-preco="300">
+          <div class="powerup-icon gold-mine">
+            <i class="fas fa-coins"></i>
+          </div>
+          <h3>Mina Dourada</h3>
+          <p>Chance de 5% de ativar multiplicador 5x</p>
+          <div class="preco">300 <i class="fas fa-gem"></i></div>
+          <button class="btn-comprar">Comprar</button>
+        </div>
+        
+        <!-- Vida Extra -->
+        <div class="item-loja" data-id="vida-extra" data-preco="200">
+          <div class="powerup-icon extra-life">
+            <i class="fas fa-heart"></i>
+            <span class="qtd-vidas" id="qtd-vidas">0</span>
+          </div>
+          <h3>Vida Extra</h3>
+          <p>Continua após 1 bomba</p>
+          <div class="preco">200 <i class="fas fa-gem"></i></div>
+          <button class="btn-comprar">Comprar</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Feedback de Compra -->
+  <div id="feedbackCompra" class="feedback-compra"></div>
+
+  <script src="loja.js"></script>
+</body>
+</html>

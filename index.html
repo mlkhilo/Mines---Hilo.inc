@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menu - Mines Cassino</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Barra de Navegação Superior -->
+  <div class="header">
+    <span class="logo">💎 MINES</span>
+    <span class="saldo">💰 R$ 1.000,00 | <i class="fas fa-gem" style="color: #4fc3f7;"></i> <span id="gemas-menu">0</span></span>
+  </div>
+
+  <!-- Container Principal -->
+  <div class="container">
+    <h1 class="titulo-brilhante">💎 Mines Cassino</h1>
+    <p>Escolha sua jogada:</p>
+
+    <!-- Botões do Menu -->
+    <div class="botoes-menu">
+      <button class="btn-jogar" onclick="transitionToPage('mines.html')">
+        <i class="fas fa-bomb"></i> Iniciar Jogo
+      </button>
+      <button class="btn-loja" onclick="transitionToPage('loja.html')">
+        <i class="fas fa-shopping-cart"></i> Loja
+      </button>
+      <button class="btn-som" onclick="toggleSom()" id="botaoSom">
+        <i class="fas fa-volume-up"></i> Som: ON
+      </button>
+      <button class="btn-ranking" onclick="mostrarRanking()">
+        <i class="fas fa-trophy"></i> Ranking
+      </button>
+      <button class="btn-creditos" onclick="abrirModal()">
+        <i class="fas fa-info-circle"></i> Créditos
+      </button>
+    </div>
+
+    <!-- Modal de Créditos -->
+    <div id="modalCreditos" class="modal">
+      <div class="modal-conteudo">
+        <span class="fechar" onclick="fecharModal()">&times;</span>
+        <h2>Créditos</h2>
+        <p>Criado por Hilo.inc © 2025<br>Inspirado em jogos de cassino Mines.</p>
+      </div>
+    </div>
+
+    <!-- Ranking -->
+    <div id="ranking" class="ranking">
+      <h3><i class="fas fa-trophy"></i> Melhores Jogadores</h3>
+      <ol id="listaRanking">
+        <li>Jogador 1 - R$ 5.000</li>
+        <li>Jogador 2 - R$ 3.200</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    // Controle de Som
+    let somAtivo = true;
+    function toggleSom() {
+      somAtivo = !somAtivo;
+      const btn = document.getElementById("botaoSom");
+      btn.innerHTML = somAtivo 
+        ? '<i class="fas fa-volume-up"></i> Som: ON' 
+        : '<i class="fas fa-volume-mute"></i> Som: OFF';
+      localStorage.setItem("somAtivo", somAtivo);
+    }
+
+    // Modal de Créditos
+    function abrirModal() {
+      document.getElementById("modalCreditos").style.display = "block";
+    }
+    function fecharModal() {
+      document.getElementById("modalCreditos").style.display = "none";
+    }
+
+    // Ranking (simulado)
+    function mostrarRanking() {
+      const ranking = document.getElementById("ranking");
+      ranking.style.display = ranking.style.display === "block" ? "none" : "block";
+    }
+
+    // Transição entre páginas
+    function transitionToPage(url) {
+      document.body.classList.add('fade-out');
+      setTimeout(() => window.location.href = url, 500);
+    }
+
+    // Atualiza gemas do menu
+    function atualizarGemasMenu() {
+      const progresso = JSON.parse(localStorage.getItem('progresso')) || { gemas: 0 };
+      document.getElementById('gemas-menu').textContent = progresso.gemas;
+    }
+
+    // Restaurar preferências ao carregar
+    window.onload = () => {
+      if (localStorage.getItem("somAtivo") === "false") {
+        toggleSom();
+      }
+      atualizarGemasMenu();
+    };
+  </script>
+</body>
+</html>
