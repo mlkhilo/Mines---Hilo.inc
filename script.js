@@ -1,7 +1,7 @@
 // Configurações
 const somAtivo = localStorage.getItem("somAtivo") !== "false";
 const config = {
-  multiplicadorBase: 1.0,
+  multiplicadorBase: 0,
   incrementoPorAcerto: 0.3,
   maxHistorico: 10
 };
@@ -47,7 +47,7 @@ let estado = JSON.parse(localStorage.getItem('estadoJogo')) || {
 
 // Progresso do Jogador
 let progresso = JSON.parse(localStorage.getItem('progresso')) || {
-  gemas: 0,
+  gemas: 20,
   skinsCompradas: ['classico'],
   skinAtiva: 'classico',
   powerUps: {
