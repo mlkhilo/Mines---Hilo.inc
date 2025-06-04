@@ -1,7 +1,7 @@
 // Configurações
 const somAtivo = localStorage.getItem("somAtivo") !== "false";
 const config = {
-  multiplicadorBase: 0,
+  multiplicadorBase: 1.0,
   incrementoPorAcerto: 0.3,
   maxHistorico: 10
 };
@@ -19,7 +19,9 @@ const elementos = {
   historicoEl: document.getElementById("historico"),
   limparHistoricoBtn: document.getElementById("limparHistorico"),
   resultadoOverlay: document.getElementById("resultadoOverlay"),
-  contadorVidas: document.getElementById("contador-vidas")
+  contadorVidas: document.getElementById("contador-vidas"),
+  contadorVisao: document.getElementById("contador-visao"),
+  btnVisaoAguia: document.getElementById("btn-visao-aguia")
 };
 
 // Sons
@@ -33,7 +35,7 @@ const sons = {
 };
 
 // Estado do Jogo
-let estado = {
+let estado = JSON.parse(localStorage.getItem('estadoJogo')) || {
   bombas: [],
   clicadas: [],
   multiplicador: config.multiplicadorBase,
@@ -50,9 +52,26 @@ let progresso = JSON.parse(localStorage.getItem('progresso')) || {
   skinAtiva: 'classico',
   powerUps: {
     minaDourada: false,
-    vidasExtras: 0
+    vidasExtras: 0,
+    visaoAguia: 0
   }
 };
+
+// Funções Auxiliares
+function vibrar() {
+  if ("vibrate" in navigator) {
+    navigator.vibrate(200);
+  }
+}
+
+function mostrarFeedback(mensagem, tipo) {
+  const feedback = document.createElement('div');
+  feedback.className = `feedback-flutuante ${tipo}`;
+  feedback.textContent = mensagem;
+  document.body.appendChild(feedback);
+  
+  setTimeout(() => feedback.remove(), 2000);
+}
 
 // Funções Principais
 function atualizarUI() {
@@ -60,6 +79,9 @@ function atualizarUI() {
   elementos.lucroEl.textContent = estado.lucro.toFixed(2);
   elementos.multiplicadorEl.textContent = estado.multiplicador.toFixed(2) + "x";
   elementos.contadorVidas.textContent = progresso.powerUps.vidasExtras;
+  elementos.contadorVisao.textContent = progresso.powerUps.visaoAguia;
+  elementos.btnVisaoAguia.style.display = progresso.powerUps.visaoAguia > 0 ? 'flex' : 'none';
+  elementos.btnVisaoAguia.setAttribute('data-count', progresso.powerUps.visaoAguia);
 }
 
 function gerarBombas(qtd) {
@@ -92,45 +114,60 @@ function criarGrade() {
   }
 }
 
-
-// Adicione esta função para vibração
-function vibrar() {
-  if ("vibrate" in navigator) {
-    navigator.vibrate(200);
-  }
-}
-
-// Modifique a função iniciarJogo para configurar o incremento baseado no número de bombas
 function iniciarJogo() {
   const aposta = parseFloat(elementos.apostaInput.value);
   if (aposta > estado.saldo || aposta <= 0) {
-    mostrarResultado("Aposta inválida!", "erro");
+    mostrarFeedback("Aposta inválida!", "erro");
     return;
   }
 
-  const numBombas = parseInt(elementos.bombasSelect.value);
-  
-  // Configura o incremento baseado no número de bombas
-  if (numBombas === 3) {
-    config.incrementoPorAcerto = 0.30;
-  } else if (numBombas === 5) {
-    config.incrementoPorAcerto = 0.50;
-  } else if (numBombas === 10) {
-    config.incrementoPorAcerto = 1.00;
-  }
-  
-  estado.saldo -= aposta;
-  estado.bombas = gerarBombas(numBombas);
+  estado.bombas = gerarBombas(parseInt(elementos.bombasSelect.value));
   estado.clicadas = [];
   estado.multiplicador = config.multiplicadorBase;
   estado.lucro = 0;
   estado.emJogo = true;
+  estado.saldo -= aposta;
 
   elementos.retirarBtn.disabled = false;
   elementos.iniciarBtn.disabled = true;
 
   criarGrade();
   if (somAtivo) sons.inicio.play();
+  atualizarUI();
+}
+
+function retirar() {
+  if (!estado.emJogo) {
+    mostrarFeedback("Nenhum jogo ativo para retirar!", "erro");
+    return;
+  }
+
+  if (estado.clicadas.length === 0) {
+    mostrarFeedback("Clique em pelo menos 1 carta antes de retirar!", "erro");
+    return;
+  }
+
+  const valorGanho = parseFloat((parseFloat(elementos.apostaInput.value) * estado.multiplicador).toFixed(2));
+  estado.saldo += parseFloat(valorGanho);
+  estado.lucro = parseFloat(valorGanho);
+  
+  // Finaliza o jogo
+  estado.emJogo = false;
+  elementos.retirarBtn.disabled = true;
+  elementos.iniciarBtn.disabled = false;
+  
+  // Adiciona gemas
+  const gemasGanhas = Math.floor(estado.lucro * 0.1);
+  progresso.gemas += gemasGanhas;
+  
+  // Salva e atualiza
+  localStorage.setItem('progresso', JSON.stringify(progresso));
+  localStorage.setItem('estadoJogo', JSON.stringify(estado));
+  
+  // Feedback
+  if (somAtivo) sons.retirada.play();
+  mostrarResultado(`Você retirou R$${valorGanho}! (+${gemasGanhas} gemas)`, "vitoria");
+  adicionarAoHistorico(true);
   atualizarUI();
 }
 
@@ -150,85 +187,66 @@ function clicarCarta(index, elemento) {
       vibrar();
       
       if (somAtivo) sons.vida.play();
-      mostrarResultado("Vida extra usada!", "aviso");
+      mostrarFeedback("Vida extra usada!", "aviso");
       
       estado.clicadas.push(index);
       atualizarUI();
     } else {
-      // Efeito de explosão
-      const explosaoEl = document.createElement('div');
-      explosaoEl.className = 'explosao';
-      elemento.appendChild(explosaoEl);
-      
+      // Efeitos visuais
       elemento.classList.add("erro");
+      const explosao = document.createElement('div');
+      explosao.className = 'explosao';
+      elemento.appendChild(explosao);
+      
+      // Mostra a bomba
       imagem.src = "bomba_padrao.png";
       imagem.style.display = "block";
+      
+      // Feedback
       vibrar();
-      
-      setTimeout(() => {
-        explosaoEl.remove();
-      }, 500);
-      
       if (somAtivo) sons.explosao.play();
       
-      // Adia o Game Over em 2 segundos
+      // Remove explosão após animação
+      setTimeout(() => explosao.remove(), 500);
+      
+      // Finaliza o jogo após delay
       setTimeout(() => {
+        estado.emJogo = false;
+        elementos.retirarBtn.disabled = true;
+        elementos.iniciarBtn.disabled = false;
+        
+        mostrarBombas();
+        mostrarResultado("Game Over!", "derrota");
         adicionarAoHistorico(false);
-        fimDeJogo(false);
-      }, 1200);
+        atualizarUI();
+      }, 800);
     }
   } else {
-    // Restante da função permanece igual
     elemento.classList.add("acerto");
-    imagem.src = "moeda_padrao.png";
+    
+    // Verifica se ativou Mina Dourada
+    const minaDouradaAtivada = progresso.powerUps.minaDourada && Math.random() < 0.05;
+    
+    // Define a imagem e o multiplicador
+    if (minaDouradaAtivada) {
+      imagem.src = "mina_dourada.png";
+      estado.multiplicador += 5; // Adiciona 5x diretamente ao multiplicador
+      mostrarFeedback("MINA DOURADA! +5x multiplicador", "sucesso");
+    } else {
+      imagem.src = "moeda_padrao.png";
+      estado.multiplicador += config.incrementoPorAcerto; // Incremento normal
+    }
+    
     imagem.style.display = "block";
     imagem.classList.add("moeda-girando");
     
-    setTimeout(() => {
-      imagem.classList.remove("moeda-girando");
-    }, 500);
+    setTimeout(() => imagem.classList.remove("moeda-girando"), 500);
     
     if (somAtivo) sons.acerto.play();
     estado.clicadas.push(index);
-    
-    // Verifica mina dourada
-    const multiplicadorExtra = (progresso.powerUps.minaDourada && Math.random() < 0.05) ? 5 : 1;
-    estado.multiplicador += config.incrementoPorAcerto * multiplicadorExtra;
-    
     estado.lucro = parseFloat(elementos.apostaInput.value) * estado.multiplicador;
     atualizarUI();
   }
-}
-
-
-function retirar() {
-  if (!estado.emJogo) return;
-  
-  estado.saldo += parseFloat(elementos.apostaInput.value) + estado.lucro;
-  
-  // Dar gemas proporcional ao lucro
-  const gemasGanhas = Math.floor(estado.lucro * 0.1);
-  progresso.gemas += gemasGanhas;
-  localStorage.setItem('progresso', JSON.stringify(progresso));
-  
-  if (somAtivo) sons.retirada.play();
-  adicionarAoHistorico(true);
-  fimDeJogo(true);
-}
-
-function fimDeJogo(vitoria) {
-  estado.emJogo = false;
-  elementos.iniciarBtn.disabled = false;
-  elementos.retirarBtn.disabled = true;
-  
-  if (!vitoria) {
-    mostrarBombas();
-    mostrarResultado("Game Over!", "derrota");
-    estado.lucro = 0;
-  } else {
-    mostrarResultado(`Você ganhou R$${estado.lucro.toFixed(2)} + ${Math.floor(estado.lucro * 0.1)} gemas!`, "vitoria");
-  }
-  atualizarUI();
 }
 
 function mostrarBombas() {
@@ -285,34 +303,53 @@ function limparHistorico() {
   atualizarHistorico();
 }
 
-// Aplicar skin ao iniciar
+function ativarVisaoAguia() {
+  if (!estado.emJogo || progresso.powerUps.visaoAguia <= 0) {
+    mostrarFeedback("Sem visões disponíveis!", "erro");
+    return;
+  }
+
+  progresso.powerUps.visaoAguia--;
+  localStorage.setItem('progresso', JSON.stringify(progresso));
+  atualizarUI();
+  
+  mostrarBombas();
+  setTimeout(() => {
+    if (estado.emJogo) {
+      document.querySelectorAll('.carta').forEach(carta => {
+        const idx = parseInt(carta.dataset.index);
+        if (estado.bombas.includes(idx) && !estado.clicadas.includes(idx)) {
+          carta.querySelector('.carta-imagem').style.display = 'none';
+        }
+      });
+    }
+  }, 3000);
+}
+
 function aplicarSkin() {
   document.body.className = `skin-${progresso.skinAtiva}`;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const loadingScreen = document.getElementById('loading-screen');
-    const progressFill = document.querySelector('.progress-fill');
-    
-    // Força a renderização antes de iniciar a animação
-    requestAnimationFrame(() => {
-        progressFill.style.width = '100%';
-    });
-
-    // Esconde após 3 segundos
-    setTimeout(() => {
-        loadingScreen.style.opacity = '0';
-        setTimeout(() => {
-            loadingScreen.style.display = 'none';
-        }, 500); // Tempo para a transição de opacidade
-    }, 3000);
-});
-
-// Event Listeners
+// Inicialização
 document.addEventListener("DOMContentLoaded", function() {
   aplicarSkin();
+  
+  // Carrega estado salvo
+  const estadoSalvo = localStorage.getItem('estadoJogo');
+  if (estadoSalvo) estado = JSON.parse(estadoSalvo);
+  
+  const progressoSalvo = localStorage.getItem('progresso');
+  if (progressoSalvo) progresso = JSON.parse(progressoSalvo);
+
+  // Configura eventos
   elementos.iniciarBtn.addEventListener("click", iniciarJogo);
   elementos.retirarBtn.addEventListener("click", retirar);
   elementos.limparHistoricoBtn.addEventListener("click", limparHistorico);
+  elementos.btnVisaoAguia.addEventListener('click', ativarVisaoAguia);
+  
+  // Garante estado inicial correto
+  elementos.retirarBtn.disabled = true;
+  elementos.iniciarBtn.disabled = false;
+  
   atualizarUI();
 });

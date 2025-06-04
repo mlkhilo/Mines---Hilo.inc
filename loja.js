@@ -5,8 +5,14 @@ const progresso = JSON.parse(localStorage.getItem('progresso')) || {
   skinAtiva: 'classico',
   powerUps: {
     minaDourada: false,
-    vidasExtras: 0
+    vidasExtras: 0,
+    visaoAguia: 0
   }
+};
+
+// Estado do Jogo
+let estado = JSON.parse(localStorage.getItem('estadoJogo')) || {
+  saldo: 100
 };
 
 // Função para transição entre páginas
@@ -29,7 +35,8 @@ function atualizarLoja() {
     if (id) {
       const comprado = progresso.skinsCompradas.includes(id) || 
                       (id === 'vida-extra' && progresso.powerUps.vidasExtras > 0) ||
-                      (id === 'mina-dourada' && progresso.powerUps.minaDourada);
+                      (id === 'mina-dourada' && progresso.powerUps.minaDourada) ||
+                      (id === 'visao-aguia' && progresso.powerUps.visaoAguia > 0);
       
       if (comprado) {
         if (id === 'classico' || id === 'neon' || id === 'espaco' || id === 'retro') {
@@ -38,12 +45,18 @@ function atualizarLoja() {
           btn.textContent = emUso ? 'Usando' : 'Usar';
           btn.className = emUso ? 'btn-usar' : 'btn-comprar';
           btn.onclick = emUso ? null : () => selecionarSkin(id);
+        } else if (id.startsWith('dinheiro-')) {
+          btn.textContent = 'Comprar';
+          btn.className = 'btn-comprar';
+          btn.onclick = () => comprarItem(id, Number(item.dataset.preco));
         } else {
           btn.textContent = 'Comprado';
           btn.className = 'btn-usar';
           btn.onclick = null;
         }
       } else {
+        btn.textContent = 'Comprar';
+        btn.className = 'btn-comprar';
         btn.onclick = () => comprarItem(id, Number(item.dataset.preco));
       }
     }
@@ -56,16 +69,23 @@ function comprarItem(id, preco) {
     progresso.gemas -= preco;
     
     if (id === 'vida-extra') {
-      progresso.powerUps.vidasExtras = (progresso.powerUps.vidasExtras || 0) + 1;
+      progresso.powerUps.vidasExtras++;
     } else if (id === 'mina-dourada') {
       progresso.powerUps.minaDourada = true;
+    } else if (id === 'visao-aguia') {
+      progresso.powerUps.visaoAguia++;
+    } else if (id.startsWith('dinheiro-')) {
+      const valor = parseInt(id.split('-')[1]);
+      estado.saldo += valor;
+      localStorage.setItem('estadoJogo', JSON.stringify(estado));
+      mostrarFeedback(`+R$${valor} adicionados!`, 'sucesso');
     } else {
       progresso.skinsCompradas.push(id);
     }
     
     localStorage.setItem('progresso', JSON.stringify(progresso));
     atualizarLoja();
-    mostrarFeedback(`Compra realizada!`, 'sucesso');
+    mostrarFeedback('Compra realizada!', 'sucesso');
   } else {
     mostrarFeedback('Gemas insuficientes!', 'erro');
   }
@@ -98,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.btn-voltar').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      transitionToPage('index.html'); // Redireciona diretamente para index.html
+      transitionToPage('index.html');
     });
   });
 });
